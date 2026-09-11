@@ -1,0 +1,45 @@
+# Render Blueprint — deploy backend from repo root.
+# Dashboard → New → Blueprint → select this repo. Free plan.
+services:
+  - type: web
+    name: navratri-backend
+    runtime: node
+    rootDir: backend
+    buildCommand: yarn install --frozen-lockfile
+    startCommand: node src/index.js
+    plan: free
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_VERSION
+        value: 20.19.2
+      - key: FRONTEND_URL
+        sync: false # set after Vercel deploy, e.g. https://garba2026.vercel.app
+      - key: EVENT_ID
+        value: navratri-2026
+      - key: DATABASE_URL
+        sync: false # Supabase → Connect → Connection string (URI)
+      - key: ED25519_PUBLIC_KEY
+        sync: false
+      - key: ED25519_PRIVATE_KEY
+        sync: false
+      - key: ADMIN_USER
+        sync: false
+      - key: ADMIN_PASS
+        sync: false
+      - key: JWT_SECRET
+        generateValue: true
+      - key: RAZORPAY_KEY_ID
+        sync: false
+      - key: RAZORPAY_KEY_SECRET
+        sync: false
+      - key: RAZORPAY_WEBHOOK_SECRET
+        sync: false
+      - key: RESEND_API_KEY
+        sync: false
+      - key: MSG91_API_KEY
+        sync: false
+      - key: WA_TOKEN
+        sync: false
+      - key: WA_PHONE_ID
+        sync: false
+    # NEVER set ALLOW_ANY_GATE in production.

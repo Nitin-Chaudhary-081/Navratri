@@ -1,0 +1,6 @@
+# Secrets & local runtime — never commit.
+.env
+backend/.env
+*.pem
+node_modules/
+frontend/dist/
