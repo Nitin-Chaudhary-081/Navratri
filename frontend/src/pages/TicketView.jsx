@@ -54,7 +54,7 @@ export default function TicketView() {
   if (!ticket) {
     return (
       <div className="p-10 text-center">
-        <p>Ticket not found on this device. Open it from your purchase confirmation or SMS/WhatsApp link.</p>
+        <p>Ticket not found on this device. Open it from your purchase confirmation email.</p>
         <Link className="underline" to="/">Go home</Link>
       </div>
     );

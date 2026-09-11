@@ -248,15 +248,91 @@ export const store = {
     });
   },
 
+  // Full dashboard payload: headline cards, per-gate flow, today's hourly
+  // entries (Asia/Kolkata), recent scans, sales by pass (for revenue math).
   async stats() {
     if (usePg) {
       const s = await pool.query(`SELECT status, COUNT(*)::int c FROM tickets GROUP BY status`);
-      const g = await pool.query(`SELECT gate_id, result, COUNT(*)::int c FROM scans GROUP BY 1,2 ORDER BY 1`);
-      return { byStatus: s.rows, scans: g.rows };
+      const g = await pool.query(
+        `SELECT COALESCE(gt.name, s.gate_id) AS gate, s.gate_id AS gate_id, s.result, COUNT(*)::int c
+         FROM scans s LEFT JOIN gates gt ON gt.id = s.gate_id GROUP BY 1, 2, 3 ORDER BY 1`
+      );
+      const byPass = await pool.query(
+        `SELECT pass_type, COUNT(*)::int c FROM tickets WHERE status != 'voided' GROUP BY 1`
+      );
+      const hourly = await pool.query(
+        `SELECT EXTRACT(HOUR FROM timezone('Asia/Kolkata', scanned_at))::int AS h, COUNT(*)::int c
+         FROM scans WHERE result = 'granted'
+         AND (timezone('Asia/Kolkata', scanned_at))::date = (timezone('Asia/Kolkata', now()))::date
+         GROUP BY 1 ORDER BY 1`
+      );
+      const today = await pool.query(
+        `SELECT COUNT(*)::int c FROM scans WHERE result = 'granted'
+         AND (timezone('Asia/Kolkata', scanned_at))::date = (timezone('Asia/Kolkata', now()))::date`
+      );
+      const recent = await pool.query(
+        `SELECT s.ticket_id, COALESCE(gt.name, s.gate_id) AS gate, s.result, s.scanned_at,
+                COALESCE(o.name, s.op_id) AS operator
+         FROM scans s LEFT JOIN gates gt ON gt.id = s.gate_id
+         LEFT JOIN operators o ON o.id = s.op_id
+         ORDER BY s.id DESC LIMIT 15`
+      );
+      const ops = await pool.query(`SELECT COUNT(*)::int c FROM operators WHERE active = true`);
+      const total = await pool.query(`SELECT COUNT(*)::int c FROM tickets`);
+      return {
+        byStatus: s.rows, scans: g.rows, perGate: g.rows, byPass: byPass.rows,
+        hourly: hourly.rows, todayGranted: today.rows[0]?.c || 0,
+        recent: recent.rows, activeOperators: ops.rows[0]?.c || 0,
+        totalTickets: total.rows[0]?.c || 0,
+      };
     }
     const byStatus = {};
-    for (const t of mem.tickets.values()) byStatus[t.status] = (byStatus[t.status] || 0) + 1;
-    return { byStatus, totalScans: mem.scans.length, gates: [...mem.gates.values()].map((g) => ({ id: g.id, name: g.name })) };
+    const byPassMap = {};
+    for (const t of mem.tickets.values()) {
+      byStatus[t.status] = (byStatus[t.status] || 0) + 1;
+      if (t.status !== 'voided') byPassMap[t.passType] = (byPassMap[t.passType] || 0) + 1;
+    }
+    const gateName = (id) => mem.gates.get(id)?.name || id;
+    const perGateMap = {};
+    for (const sc of mem.scans) {
+      const k = sc.gateId + '|' + sc.result;
+      perGateMap[k] = (perGateMap[k] || 0) + 1;
+    }
+    const perGate = Object.entries(perGateMap).map(([k, c]) => {
+      const [gate_id, result] = k.split('|');
+      return { gate: gateName(gate_id), gate_id, result, c };
+    });
+    const todayK = new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Kolkata' });
+    const hourlyMap = {};
+    let todayGranted = 0;
+    for (const sc of mem.scans) {
+      if (sc.result !== 'granted') continue;
+      const d = new Date(sc.at);
+      if (d.toLocaleDateString('en-CA', { timeZone: 'Asia/Kolkata' }) !== todayK) continue;
+      todayGranted += 1;
+      const h = Number(d.toLocaleString('en-US', { timeZone: 'Asia/Kolkata', hour: 'numeric', hour12: false }));
+      hourlyMap[h] = (hourlyMap[h] || 0) + 1;
+    }
+    const opName = (id) => {
+      if (!id) return '—';
+      for (const o of mem.operators.values()) if (o.id === id) return o.name;
+      return String(id).startsWith('admin:') ? 'Organizer' : id;
+    };
+    return {
+      byStatus,
+      totalScans: mem.scans.length,
+      gates: [...mem.gates.values()].map((g) => ({ id: g.id, name: g.name })),
+      perGate,
+      byPass: Object.entries(byPassMap).map(([pass_type, c]) => ({ pass_type, c })),
+      hourly: Object.entries(hourlyMap).map(([h, c]) => ({ h: Number(h), c })).sort((a, b) => a.h - b.h),
+      todayGranted,
+      recent: mem.scans.slice(-15).reverse().map((sc) => ({
+        ticket_id: sc.ticketId, gate: gateName(sc.gateId), result: sc.result,
+        scanned_at: sc.at, operator: opName(sc.opId),
+      })),
+      activeOperators: [...mem.operators.values()].filter((o) => o.active).length,
+      totalTickets: mem.tickets.size,
+    };
   },
 
   async findGateByKey(rawKey) {    const h = sha(rawKey || '');

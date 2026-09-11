@@ -49,12 +49,11 @@ Then set backend `FRONTEND_URL=https://<your-app>.vercel.app` and redeploy backe
 3. **Live money is safe by design:** tickets are issued ONLY by the webhook on `payment.captured` (idempotent — retries can't double-issue). Unpaid/cancelled orders never produce QRs. After the Razorpay popup reports success, the site polls `GET /api/passes/order/:id` until the pass lands (~seconds), then shows the QRs.
 4. Complete KYC → swap to live keys.
 
-## 6. Ticket delivery (thank-you + ticket on WhatsApp/email)
+## 6. Ticket delivery (thank-you + ticket by email)
 Without keys, delivery only logs to the Render console — buyers still get QRs on the success screen, so don't block launch on this.
-1. **Email:** Gmail App Password for testing (`GMAIL_USER` + `GMAIL_APP_PASS` — Google Account → 2-Step → App passwords), or Resend for production (`RESEND_API_KEY` + verified `RESEND_FROM`, free 100/day). Buyers get a festive HTML thank-you + QR PNG attached + ticket link.
-2. **WhatsApp:** Meta developer account → WhatsApp Cloud API number → create template `navratri_pass` with 4 body variables in order (buyer name, pass name, ticket id, ticket link), get it approved → set `WA_TOKEN` + `WA_PHONE_ID` (+ `WA_TEMPLATE` if named differently).
-3. **IMPORTANT:** set backend `FRONTEND_URL` to your Vercel URL — ticket links are built from it. Test by buying with your own number/email.
-4. After adding `qr_string` to `schema.sql`: existing Supabase DBs just re-run the file (the `ALTER TABLE ... ADD COLUMN IF NOT EXISTS` is safe).
+**Email only:** Gmail App Password for testing (`GMAIL_USER` + `GMAIL_APP_PASS` — Google Account → 2-Step → App passwords), or Resend for production (`RESEND_API_KEY` + verified `RESEND_FROM`, free 100/day). Buyers get a festive HTML thank-you + QR PNG attached + ticket link. (WhatsApp/SMS code paths still exist in `notify.js` for later, but the website offers email only.)
+**IMPORTANT:** set backend `FRONTEND_URL` to your Vercel URL — ticket links are built from it. Test by buying with your own email address.
+After adding `qr_string` to `schema.sql`: existing Supabase DBs just re-run the file (the `ALTER TABLE ... ADD COLUMN IF NOT EXISTS` is safe).
 
 ## 7. Pre-event dry run (do this, solo, 1 evening)
 - [ ] `node backend/tests/double-scan.js` against prod URL (`BASE=...`) → PASS

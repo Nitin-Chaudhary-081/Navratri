@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { API } from '../lib/app.js';
 
@@ -27,6 +27,15 @@ export default function Admin() {
     setTicket(r.ticket || r);
   };
 
+  // Live feel: refresh numbers every 15s while the dashboard is open.
+  useEffect(() => {
+    if (!token) return;
+    load(token);
+    const id = setInterval(() => load(token), 15000);
+    return () => clearInterval(id);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [token]);
+
   if (!token) return (
     <div className="max-w-sm mx-auto p-8">
       <h1 className="section-title">Organizer login</h1>
@@ -42,12 +51,14 @@ export default function Admin() {
         <button className="btn-ghost" onClick={() => load()}>↻ Refresh</button>
         <Link className="btn" to="/scan">📷 Open gate scanner</Link>
       </div>
-      <pre className="card p-4 mt-4 text-xs overflow-auto">{JSON.stringify(stats, null, 2)}</pre>
+      <Dashboard stats={stats} />
+      <h2 className="section-title mt-10">Find ticket</h2>
       <div className="flex gap-2 mt-4">
         <input value={lookup} onChange={(e) => setLookup(e.target.value)} placeholder="Ticket ID e.g. NVR-…" className="flex-1 p-3 rounded-xl text-night" />
         <button className="btn" onClick={find}>Lookup</button>
       </div>
-      {ticket && <pre className="card p-4 mt-3 text-xs overflow-auto">{JSON.stringify(ticket, null, 2)}</pre>}
+      {ticket && !ticket.error && <TicketCard t={ticket} />}
+      {ticket?.error && <p className="text-red-400 mt-3">Ticket not found.</p>}
       {ticket && !ticket.error && (
         <div className="card p-4 mt-3 flex flex-col md:flex-row gap-2 items-stretch">
           <input id="reentry-reason" placeholder="Re-entry reason (e.g. medical exit, gate 2)" className="flex-1 p-3 rounded-xl text-night text-sm" />
@@ -91,6 +102,136 @@ export default function Admin() {
           const r = await fetch(API('/api/admin/operators'), { method: 'POST', headers: { 'content-type': 'application/json', authorization: 'Bearer ' + token }, body: JSON.stringify(newOp) }).then((r) => r.json());
           if (r.error) alert(JSON.stringify(r.error)); else { setNewOp({ name: '', username: '', password: '', gateId: 'gate-north' }); load(); }
         }}>+ Add operator</button>
+      </div>
+    </div>
+  );
+}
+
+function Card({ label, value, sub }) {
+  return (
+    <div className="card p-4">
+      <p className="text-xs text-white/50 uppercase tracking-wider">{label}</p>
+      <p className="text-3xl font-extrabold text-haldi mt-1">{value}</p>
+      {sub && <p className="text-xs text-white/50 mt-1">{sub}</p>}
+    </div>
+  );
+}
+
+function Pill({ result }) {
+  const color = result === 'granted' ? 'bg-green-600'
+    : result === 'duplicate' ? 'bg-amber-600'
+    : 'bg-red-600';
+  return <span className={`${color} text-xs font-bold px-2 py-1 rounded-lg`}>{result}</span>;
+}
+
+function Dashboard({ stats }) {
+  if (!stats) return <p className="text-white/50 mt-4">Loading…</p>;
+  const count = (arr, key, val) => (arr || []).filter((r) => r[key] === val).reduce((s, r) => s + (r.c || 0), 0);
+  const used = count(stats.byStatus, 'status', 'used');
+  const voided = count(stats.byStatus, 'status', 'voided');
+  const gates = {};
+  for (const r of stats.perGate || []) {
+    gates[r.gate] = gates[r.gate] || { granted: 0, other: 0 };
+    if (r.result === 'granted') gates[r.gate].granted += r.c;
+    else gates[r.gate].other += r.c;
+  }
+  const maxH = Math.max(1, ...(stats.hourly || []).map((r) => r.c));
+  const inr = (n) => '₹' + Number(n || 0).toLocaleString('en-IN');
+  return (
+    <div className="mt-4 space-y-4">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+        <Card label="Passes sold" value={stats.totalTickets ?? '—'} sub={`${used} fully used · ${voided} voided`} />
+        <Card label="Entered today" value={stats.todayGranted ?? '—'} sub="granted scans, all gates" />
+        <Card label="Revenue" value={inr(stats.revenue)} sub="excl. voided passes" />
+        <Card label="Gate staff active" value={stats.activeOperators ?? '—'} sub="operator logins" />
+      </div>
+
+      <div className="grid md:grid-cols-2 gap-3">
+        <div className="card p-4">
+          <h3 className="font-bold mb-2">Sales by pass</h3>
+          {(stats.byPass || []).map((r) => (
+            <div key={r.pass_type} className="flex justify-between text-sm py-1 border-b border-white/5">
+              <span>{r.name}</span>
+              <span className="font-mono">{r.c} · {inr(r.revenue)}</span>
+            </div>
+          ))}
+          {!(stats.byPass || []).length && <p className="text-sm text-white/40">No sales yet.</p>}
+        </div>
+        <div className="card p-4">
+          <h3 className="font-bold mb-2">Entries by gate (all time)</h3>
+          {Object.entries(gates).map(([g, v]) => (
+            <div key={g} className="flex justify-between text-sm py-1 border-b border-white/5">
+              <span>{g}</span>
+              <span className="font-mono">✅ {v.granted} · ⛔ {v.other}</span>
+            </div>
+          ))}
+          {!Object.keys(gates).length && <p className="text-sm text-white/40">No scans yet.</p>}
+        </div>
+      </div>
+
+      <div className="card p-4">
+        <h3 className="font-bold mb-2">Today's entries per hour</h3>
+        {(stats.hourly || []).length ? (
+          <div className="flex items-end gap-1 h-28">
+            {(stats.hourly || []).map((r) => (
+              <div key={r.h} className="flex-1 flex flex-col items-center justify-end h-full" title={`${r.h}:00 — ${r.c}`}>
+                <span className="text-[10px] text-white/60">{r.c}</span>
+                <div className="w-full bg-haldi/80 rounded-t" style={{ height: `${Math.max(4, (r.c / maxH) * 80)}px` }} />
+                <span className="text-[10px] text-white/40">{r.h}</span>
+              </div>
+            ))}
+          </div>
+        ) : <p className="text-sm text-white/40">No entries today yet.</p>}
+      </div>
+
+      <div className="card p-4">
+        <h3 className="font-bold mb-2">Latest scans</h3>
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm">
+            <thead><tr className="text-left text-white/40 text-xs">
+              <th className="py-1">Time</th><th>Ticket</th><th>Gate</th><th>Staff</th><th>Result</th>
+            </tr></thead>
+            <tbody>
+              {(stats.recent || []).map((s, i) => (
+                <tr key={i} className="border-t border-white/5">
+                  <td className="py-1 font-mono text-xs">{s.scanned_at ? new Date(s.scanned_at).toLocaleTimeString('en-IN') : '—'}</td>
+                  <td className="font-mono">{s.ticket_id}</td>
+                  <td>{s.gate}</td>
+                  <td>{s.operator || '—'}</td>
+                  <td><Pill result={s.result} /></td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+          {!(stats.recent || []).length && <p className="text-sm text-white/40">No scans yet.</p>}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function TicketCard({ t }) {
+  const id = t.ticket_id || t.ticketId;
+  const status = t.status || (t.usesRemaining <= 0 ? 'used' : 'unused');
+  const color = status === 'used' ? 'bg-red-600' : status === 'voided' ? 'bg-gray-600' : 'bg-green-600';
+  const row = (k, v) => (
+    <div className="flex justify-between text-sm py-1 border-b border-white/5">
+      <span className="text-white/50">{k}</span><span className="font-mono text-right">{v ?? '—'}</span>
+    </div>
+  );
+  return (
+    <div className="card p-4 mt-3">
+      <div className="flex items-center gap-2">
+        <h3 className="font-bold font-mono text-lg">{id}</h3>
+        <span className={`${color} text-xs font-bold px-2 py-1 rounded-lg`}>{status}</span>
+      </div>
+      <div className="mt-2">
+        {row('Pass', t.pass_type || t.passType)}
+        {row('Holder', t.holder_name || t.holder?.name)}
+        {row('Contact', t.holder_contact || t.holder?.contact)}
+        {row('Nights left', t.uses_remaining ?? t.usesRemaining)}
+        {row('First entry', t.used_at || t.usedAt ? new Date(t.used_at || t.usedAt).toLocaleString('en-IN') : '—')}
+        {row('First gate', t.used_gate_id || t.usedGate)}
       </div>
     </div>
   );

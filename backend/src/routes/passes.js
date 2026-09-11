@@ -35,20 +35,11 @@ const checkoutSchema = z.object({
   qty: z.number().int().min(1).max(10).default(1),
   name: z.string().trim().min(2).max(80),
   contact: z.string().trim().min(5).max(60),
-  channel: z.enum(['email', 'whatsapp']).default('whatsapp'),
+  channel: z.enum(['email']).default('email'),
 }).superRefine((val, ctx) => {
-  // Channel-aware check: the pass is DELIVERED on this channel, so it must be real.
-  if (val.channel === 'email') {
-    if (!EMAIL_RE.test(val.contact)) {
-      ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['contact'], message: 'Enter a valid email address (e.g. name@example.com).' });
-    }
-  } else {
-    const digits = normalizePhone(val.contact);
-    if (!IN_MOBILE_RE.test(digits)) {
-      ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['contact'], message: 'Enter a valid 10-digit Indian mobile number (e.g. 9876543210).' });
-    } else {
-      val.contact = digits; // store normalized
-    }
+  // Tickets are delivered by email, so the address must be real.
+  if (!EMAIL_RE.test(val.contact)) {
+    ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['contact'], message: 'Enter a valid email address (e.g. name@example.com).' });
   }
 });
 

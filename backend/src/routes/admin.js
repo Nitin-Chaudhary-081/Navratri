@@ -2,6 +2,7 @@ import { Router } from 'express';
 import jwt from 'jsonwebtoken';
 import { z } from 'zod';
 import { store } from '../lib/store.js';
+import { PASS_TYPES } from './passes.js';
 
 export const adminRouter = Router();
 const ADMIN_USER = process.env.ADMIN_USER || 'admin';
@@ -25,7 +26,15 @@ function needAdmin(req, res, next) {
   } catch { res.status(401).json({ error: 'unauthorized' }); }
 }
 
-adminRouter.get('/stats', needAdmin, async (_req, res) => res.json(await store.stats()));
+adminRouter.get('/stats', needAdmin, async (_req, res) => {
+  const stats = await store.stats();
+  const priceOf = (id) => PASS_TYPES.find((p) => p.id === id)?.priceInr || 0;
+  const nameOf = (id) => PASS_TYPES.find((p) => p.id === id)?.name || id;
+  const byPass = (stats.byPass || []).map((r) => ({
+    ...r, name: nameOf(r.pass_type), revenue: (r.c || 0) * priceOf(r.pass_type),
+  }));
+  res.json({ ...stats, byPass, revenue: byPass.reduce((s, r) => s + r.revenue, 0) });
+});
 adminRouter.get('/tickets/:id', needAdmin, async (req, res) => {
   const t = await store.getTicket(req.params.id);
   if (!t) return res.status(404).json({ error: 'not found' });

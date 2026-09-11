@@ -27,7 +27,7 @@ function validateContact(channel, contact) {
 export default function Checkout() {
   const { passId } = useParams();
   const nav = useNavigate();
-  const [form, setForm] = useState({ name: '', contact: '', channel: 'whatsapp', qty: 1 });
+  const [form, setForm] = useState({ name: '', contact: '', channel: 'email', qty: 1 });
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
   const [waiting, setWaiting] = useState(false);
@@ -133,12 +133,8 @@ export default function Checkout() {
           />
           {errors.name && <p className="text-red-400 text-sm mt-1">{errors.name}</p>}
         </div>
-        <div className="flex gap-4 text-sm">
-          {['whatsapp', 'email'].map((c) => (
-            <label key={c} className="flex items-center gap-1 capitalize">
-              <input type="radio" checked={form.channel === c} onChange={() => setForm({ ...form, channel: c, contact: '' }) || setErrors({})} />{c}
-            </label>
-          ))}
+        <div className="flex gap-4 text-sm items-center">
+          <span className="text-white/60">Ticket arrives by email 📧</span>
           <input type="number" min="1" max="10" value={form.qty} onChange={(e) => setForm({ ...form, qty: e.target.value })} className="ml-auto w-20 p-2 rounded-xl text-night" title="qty" />
         </div>
         <div>
