@@ -23,7 +23,7 @@ export default function Home() {
           <motion.div initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }}>
             <p className="text-haldi tracking-widest text-sm">✨ 9 NIGHTS · 4 GATES · 5000 DANCERS/NIGHT</p>
             <h1 className="text-5xl font-extrabold leading-tight">Navratri Garba <span className="text-haldi">2026</span></h1>
-            <p className="mt-3 text-white/80">ડિજિટલ QR પાસ · એક સ્કેનમાં એન્ટ્રી · સ્ક્રીનશોટ ચાલશે નહીં. ઢોલ વાગે, દાંડિયા ખણકે — આવો, ગરબે ઘૂમીએ!</p>
+            <p className="mt-3 text-white/80">ડિજિટલ QR પાસ · એક સ્કેનમાં એન્ટ્રી · ઢોલ વાગે, દાંડિયા ખણકે — આવો, ગરબે ઘૂમીએ!</p>
             <div className="mt-6 flex gap-3">
               <button onClick={() => scrollToId('passes')} className="btn">🎟️ Get Passes</button>
               <a href="#venue" className="btn-ghost">📍 Venue & Gates</a>
