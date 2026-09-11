@@ -23,12 +23,12 @@ export default function Home() {
           <motion.div initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }}>
             <p className="text-haldi tracking-widest text-sm">✨ 9 NIGHTS · 4 GATES · 5000 DANCERS/NIGHT</p>
             <h1 className="text-5xl font-extrabold leading-tight">Navratri Garba <span className="text-haldi">2026</span></h1>
-            <p className="mt-3 text-white/80">Secure QR passes · single-scan entry · no screenshots, no sharing. Dandiya up, worries down.</p>
+            <p className="mt-3 text-white/80">ડિજિટલ QR પાસ · એક સ્કેનમાં એન્ટ્રી · સ્ક્રીનશોટ ચાલશે નહીં. ઢોલ વાગે, દાંડિયા ખણકે — આવો, ગરબે ઘૂમીએ!</p>
             <div className="mt-6 flex gap-3">
               <button onClick={() => scrollToId('passes')} className="btn">🎟️ Get Passes</button>
               <a href="#venue" className="btn-ghost">📍 Venue & Gates</a>
             </div>
-            <p className="mt-3 text-xs text-white/60">Razorpay test mode · SMS/WhatsApp delivery · Offline-tolerant gates</p>
+            <p className="mt-3 text-xs text-white/60">ટિકિટ લો, QR બતાવો, ગરબે ઘૂમો! 🙏 જય અંબે 🙏</p>
           </motion.div>
           <motion.img src={IMGS.heroSolo} alt="Garba dancer" className="rounded-3xl border-4 border-haldi/60 shadow-2xl animate-floaty object-cover h-96 w-full" initial={{ scale: 0.95 }} animate={{ scale: 1 }} />
         </div>
@@ -37,7 +37,7 @@ export default function Home() {
       {/* PASSES — uses passes-garba-night */}
       <section id="passes" className="max-w-6xl mx-auto px-4 py-12 scroll-mt-24">
         <img src={IMGS.passes} className="rounded-2xl w-full h-44 object-cover border border-white/10" alt="Garba Night" />
-        <h2 className="section-title mt-6">Choose your pass <span className="text-haldi">(prices editable)</span></h2>
+        <h2 className="section-title mt-6">તમારો પાસ પસંદ કરો <span className="text-haldi">· નવરાત્રિની નવ રાત, ગરબાની મોજ!</span></h2>
         <div className="grid md:grid-cols-4 gap-4 mt-6">
           {passes.map((p) => (
             <motion.div key={p.id} whileHover={{ y: -6 }} className="card p-5">
@@ -95,7 +95,7 @@ export default function Home() {
           <button onClick={() => scrollToId('passes')} className="btn mt-4">Book now — from ₹299</button>
         </div>
       </section>
-      <footer className="text-center text-xs text-white/40 py-8">Made for Navratri · Vercel + Supabase + Render · Razorpay test mode</footer>
+      <footer className="text-center text-sm text-white/60 py-8">॥ શુભ નવરાત્રિ ॥ 🙏 જય અંબે · ગરબા ૨૦૨૬ 🎉</footer>
     </div>
   );
 }
