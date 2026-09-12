@@ -7,10 +7,10 @@ export const ticketUrl = (ticketId) => `${FRONTEND}/t/${ticketId}`;
 
 function thankYouText({ holderName, passName, ticketId }) {
   return (
-    `🙏 Dhanyavaad ${holderName}! Your Navratri Garba 2026 pass is confirmed.\n\n` +
+    `🙏 Dhanyavaad ${holderName}! Your Raas Rang Navratri Mahotsav (Palanpur) pass is confirmed.\n\n` +
     `🎟️ ${passName}\n🎫 Ticket: ${ticketId}\n\n` +
     `👉 Open your ticket here (tap Save as PDF before coming):\n${ticketUrl(ticketId)}\n\n` +
-    `📍 Main Ground · 7 PM onwards · phone brightness full at gate · one scan per pass.\nSee you in the circle! 🥁`
+    `📍 Palanpur · 7 PM onwards · phone brightness full at gate · one scan per pass.\nSee you in the circle! 🥁`
   );
 }
 
@@ -20,10 +20,10 @@ function thankYouHtml({ holderName, passName, ticketId }) {
     `<div style="font-family:sans-serif;max-width:520px;margin:auto;background:#1a0b12;color:#fff;border-radius:16px;overflow:hidden">` +
     `<div style="background:linear-gradient(90deg,#FFB300,#E91E63,#0B6E5F);height:8px"></div>` +
     `<div style="padding:24px"><p>🙏 Dhanyavaad <b>${escapeHtml(holderName)}</b>!</p>` +
-    `<h2 style="color:#FFB300">Your Navratri Garba 2026 pass is confirmed 🎉</h2>` +
+    `<h2 style="color:#FFB300">Your Raas Rang Navratri Mahotsav pass is confirmed 🎉</h2>` +
     `<p>🎟️ <b>${escapeHtml(passName)}</b><br/>🎫 Ticket: <b>${escapeHtml(ticketId)}</b></p>` +
     `<p><a href="${url}" style="display:inline-block;background:#FFB300;color:#000;padding:12px 24px;border-radius:12px;text-decoration:none;font-weight:bold">🎫 Open my ticket + Save PDF</a></p>` +
-    `<p style="font-size:13px;color:#ccc">Your QR code is attached to this email too. 📍 Main Ground · 7 PM onwards · brightness full at gate · one scan per pass.</p>` +
+    `<p style="font-size:13px;color:#ccc">Your QR code is attached to this email too. 📍 Palanpur · 7 PM onwards · brightness full at gate · one scan per pass.</p>` +
     `</div><div style="background:linear-gradient(90deg,#FFB300,#E91E63,#0B6E5F);height:8px"></div></div>`
   );
 }
@@ -42,7 +42,7 @@ async function sendEmail({ to, subject, html, qrPng, ticketId }) {
     method: 'POST',
     headers: { authorization: `Bearer ${process.env.RESEND_API_KEY}`, 'content-type': 'application/json' },
     body: JSON.stringify({
-      from: process.env.RESEND_FROM || 'Navratri Garba 2026 <onboarding@resend.dev>',
+      from: process.env.RESEND_FROM || 'Raas Rang Navratri <onboarding@resend.dev>',
       to: [to],
       subject,
       html,
@@ -97,7 +97,7 @@ async function sendGmail({ to, subject, html, qrPng, ticketId }) {
     },
   });
   await transporter.sendMail({
-    from: `"Navratri Garba 2026" <${process.env.GMAIL_USER}>`,
+    from: `"Raas Rang Navratri" <${process.env.GMAIL_USER}>`,
     to,
     subject,
     html,
@@ -107,7 +107,7 @@ async function sendGmail({ to, subject, html, qrPng, ticketId }) {
 }
 
 export async function sendPass({ to, channel = 'whatsapp', ticketId, passType, holderName, qrDataUrl, qrPng }) {
-  const subject = `🎉 Your Navratri Garba 2026 ticket ${ticketId} is here!`;
+  const subject = `🎉 Your Raas Rang ticket ${ticketId} is here!`;
   try {
     if (channel === 'email' && process.env.GMAIL_USER && process.env.GMAIL_APP_PASS) {
       return await sendGmail({ to, subject, html: thankYouHtml({ holderName, passName: passType, ticketId }), qrPng, ticketId });

@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useParams, useLocation, Link } from 'react-router-dom';
-import { API, IMGS } from '../lib/app.js';
+import { API } from '../lib/app.js';
 
 // Real event ticket: event details + holder + QR, printable / save-as-PDF.
 // Data comes from the purchase flow (navigation state) or this device's
@@ -65,14 +65,14 @@ export default function TicketView() {
       {/* ---- the ticket (this exact block is what prints / saves as PDF) ---- */}
       <div className="ticket-print rounded-3xl overflow-hidden bg-white text-night shadow-2xl">
         <div className="toran" />
-        <img src={IMGS.heroBg} className="w-full h-36 object-cover" alt="Navratri" />
+        <img src="/img/logo-raasrang.jpeg" className="w-full h-36 object-cover" alt="Raas Rang" />
         <div className="p-5">
-          <p className="text-xs tracking-widest font-bold text-maroon">NAVRATRI GARBA 2026 · OFFICIAL ENTRY PASS</p>
+          <p className="text-xs tracking-widest font-bold text-maroon">રાસરંગ નવરાત્રી મહોત્સવ · પાલનપુર · OFFICIAL ENTRY PASS</p>
           <h1 className="text-2xl font-extrabold">{ticket.passName}</h1>
           <div className="grid grid-cols-2 gap-2 text-sm mt-3">
             <div><p className="text-night/50 text-xs">Holder</p><p className="font-bold">{ticket.holderName}</p></div>
             <div><p className="text-night/50 text-xs">Ticket ID</p><p className="font-mono font-bold">{ticket.ticketId}</p></div>
-            <div><p className="text-night/50 text-xs">Venue</p><p className="font-bold">Main Ground</p></div>
+            <div><p className="text-night/50 text-xs">Venue</p><p className="font-bold">Palanpur</p></div>
             <div><p className="text-night/50 text-xs">Time</p><p className="font-bold">7 PM onwards · 9 Nights</p></div>
           </div>
           <img src={ticket.qrDataUrl} className="w-60 h-60 mx-auto mt-4 border-4 border-night/10 rounded-2xl" alt={`QR for ${ticket.ticketId}`} />

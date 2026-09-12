@@ -55,7 +55,7 @@ create table if not exists pending_orders(
 );
 
 -- seed: 1 event + 4 passes (EDIT PRICES HERE) + 4 gates (replace key hashes!)
-insert into events(id,name,venue) values('navratri-2026','Navratri Garba 2026','Main Ground')
+insert into events(id,name,venue) values('navratri-2026','Raas Rang Navratri Mahotsav','Palanpur')
 on conflict do nothing;
 insert into pass_types(id,event_id,name,price_inr,uses) values
  ('single','navratri-2026','Single-Day Garba',299,1),

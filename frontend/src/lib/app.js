@@ -1,5 +1,6 @@
 export const API = (p) => (import.meta.env.VITE_API_URL || '') + p;
 export const IMGS = {
+  logo: '/img/logo-raasrang.jpeg',
   heroBg: '/img/hero-durga-eyes.jpeg',
   heroSolo: '/img/hero-solo-orange.jpeg',
   passes: '/img/passes-garba-night.jpeg',

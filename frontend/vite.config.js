@@ -8,12 +8,12 @@ export default defineConfig({
     VitePWA({
       registerType: 'autoUpdate',
       manifest: {
-        name: 'Navratri Gate Scanner',
-        short_name: 'GarbaScan',
+        name: 'Raas Rang Navratri Mahotsav',
+        short_name: 'RaasRang',
         theme_color: '#7A0C1A',
         background_color: '#0F0510',
         display: 'standalone',
-        icons: [{ src: '/img/hero-durga-eyes.jpeg', sizes: '512x512', type: 'image/jpeg' }],
+        icons: [{ src: '/img/logo-raasrang.jpeg', sizes: '512x512', type: 'image/jpeg' }],
       },
       workbox: { globPatterns: ['**/*.{js,css,html,jpeg,png,svg}'] },
     }),

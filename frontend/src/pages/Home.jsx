@@ -22,7 +22,8 @@ export default function Home() {
         <div className="relative max-w-6xl mx-auto px-4 py-16 grid md:grid-cols-2 gap-8 items-center">
           <motion.div initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }}>
             <p className="text-haldi tracking-widest text-sm">✨ 9 NIGHTS · 4 GATES · 5000 DANCERS/NIGHT</p>
-            <h1 className="text-5xl font-extrabold leading-tight">Navratri Garba <span className="text-haldi">2026</span></h1>
+            <h1 className="text-5xl font-extrabold leading-tight">રાસરંગ <span className="text-haldi">નવરાત્રી મહોત્સવ</span></h1>
+            <p className="text-haldi/90 font-semibold mt-1">📍 પાલનપુર · ૯ રાત · ગરબાની મોજ</p>
             <p className="mt-3 text-white/80">ડિજિટલ QR પાસ · એક સ્કેનમાં એન્ટ્રી · ઢોલ વાગે, દાંડિયા ખણકે — આવો, ગરબે ઘૂમીએ!</p>
             <div className="mt-6 flex gap-3">
               <button onClick={() => scrollToId('passes')} className="btn">🎟️ Get Passes</button>
@@ -63,7 +64,7 @@ export default function Home() {
       {/* VENUE — uses venue-aerial-stage */}
       <section id="venue" className="max-w-6xl mx-auto px-4 py-8">
         <img src={IMGS.venue} className="rounded-2xl h-64 w-full object-cover" alt="Venue stage" />
-        <h2 className="section-title mt-4">Main Ground · 4 gates</h2>
+        <h2 className="section-title mt-4">Palanpur · 4 gates</h2>
         <p className="text-white/70">North / South / East / VIP. Peak load ~8 scans/min/gate — each scan answers in &lt;1s, atomic anti-double-entry.</p>
       </section>
 
