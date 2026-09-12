@@ -7,9 +7,8 @@ import { API, queueScan, flushQueue } from '../lib/app.js';
 // Operators log in below; organizers already logged in to /admin pass straight through.
 //
 // Scan behavior: the camera STOPS on the first successful read (no auto-refire),
-// and a rescan of the same QR within GRACE_MS re-shows the granted result
-// without hitting the server — so the screen never flips green→red by itself.
-const GRACE_MS = 90_000; // 90-second grace: same QR re-shows green, then honest red
+// and every check goes straight to the server — a used pass shows red instantly,
+// no grace delay. Guard taps "scan next" to resume.
 const DEBOUNCE_MS = 2000; // ignore repeat decodes faster than this
 export default function Scanner() {
   const [session, setSession] = useState(() => {
@@ -30,7 +29,6 @@ export default function Scanner() {
   const [online, setOnline] = useState(navigator.onLine);
   const qrRef = useRef(null);
   const lastDecodeAt = useRef(0); // debounce: camera fires many times/sec
-  const graceCache = useRef(new Map()); // qr -> { result, at }: granted grace window
   const [scanning, setScanning] = useState(false);
 
   useEffect(() => {
@@ -68,12 +66,7 @@ export default function Scanner() {
     if (now - lastDecodeAt.current < DEBOUNCE_MS) return; // camera multi-fire guard
     lastDecodeAt.current = now;
     const key = String(qr || '').trim();
-    const cached = graceCache.current.get(key);
-    if (cached && now - cached.at < GRACE_MS) {
-      stopCam();
-      setRes({ ...cached.result, grace: true });
-      return;
-    }
+    if (!key) return;
     await stopCam(); // freeze on first read — guard taps "scan next" to resume
     await validate(key);
   };
@@ -86,7 +79,6 @@ export default function Scanner() {
         method: 'POST', headers: authHeaders(), body: JSON.stringify(body),
       }).then((r) => r.json());
       if (r.reason === 'access-revoked' || r.reason === 'login-required') { logout(); return; }
-      if (r.result === 'granted') graceCache.current.set(String(qr).trim(), { result: r, at: Date.now() });
       setRes(r);
     } catch {
       queueScan({ qr }); // offline: queue, gate comes from token at sync time
@@ -156,7 +148,7 @@ export default function Scanner() {
       )}
       {res && (
         <div className={`${bg} rounded-3xl p-10 mt-6 text-center text-2xl font-extrabold`}>
-          {res.result === 'granted' && <>✅ ENTRY GRANTED<br /><span className="text-base font-normal">{res.passType} · left: {res.remaining ?? '—'}{res.reason === 'reentry' ? ' · supervisor re-entry' : ''}{res.grace ? ' · re-shown (90s grace)' : ''}</span></>}
+          {res.result === 'granted' && <>✅ ENTRY GRANTED<br /><span className="text-base font-normal">{res.passType} · left: {res.remaining ?? '—'}{res.reason === 'reentry' ? ' · supervisor re-entry' : ''}</span></>}
           {res.result === 'duplicate' && res.reason === 'daily-limit' && <>⛔ ALREADY ENTERED TODAY<br /><span className="text-base font-normal">first today: {res.usedAt ? new Date(res.usedAt).toLocaleTimeString('en-IN') : ''} @ {res.usedGate} · nights left: {res.remaining ?? '—'} · come back tomorrow</span></>}
           {res.result === 'duplicate' && res.reason !== 'daily-limit' && <>⛔ ALREADY USED<br /><span className="text-base font-normal">first: {res.usedAt ? new Date(res.usedAt).toLocaleString('en-IN') : ''} @ {res.usedGate}{res.reason === 'exhausted' ? ' · all nights over' : ''} · supervisor can grant re-entry</span></>}
           {res.result === 'invalid' && <>❌ INVALID PASS ({res.reason || 'bad QR'})</>}
