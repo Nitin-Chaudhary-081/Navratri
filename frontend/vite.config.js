@@ -19,11 +19,11 @@ export default defineConfig({
     }),
   ],
   // NOTE: backend runs on 4001 locally (4000 held by a stuck process until reboot).
-  // allowedHosts lets you share the site via a tunnel (trycloudflare/ngrok) or LAN IP.
+  // allowedHosts:true = demo mode: reachable via any tunnel share-link or LAN IP.
   server: {
     port: 5173,
     host: true,
-    allowedHosts: ['.trycloudflare.com', '.ngrok-free.app', '.loca.lt'],
+    allowedHosts: true,
     proxy: { '/api': 'http://localhost:4001' },
   },
 });
