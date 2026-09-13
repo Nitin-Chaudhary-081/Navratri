@@ -65,7 +65,7 @@ export default function TicketView() {
       {/* ---- the ticket (this exact block is what prints / saves as PDF) ---- */}
       <div className="ticket-print rounded-3xl overflow-hidden bg-white text-night shadow-2xl">
         <div className="toran" />
-        <img src="/img/logo-raasrang.jpeg" className="w-full h-36 object-cover" alt="Raas Rang" />
+        <img src="/img/logo-raasrang.png" className="w-full h-36 object-cover object-top" alt="Raas Rang" />
         <div className="p-5">
           <p className="text-xs tracking-widest font-bold text-maroon">રાસરંગ નવરાત્રી મહોત્સવ · પાલનપુર · OFFICIAL ENTRY PASS</p>
           <h1 className="text-2xl font-extrabold">{ticket.passName}</h1>

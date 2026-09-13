@@ -13,7 +13,7 @@ export default defineConfig({
         theme_color: '#7A0C1A',
         background_color: '#0F0510',
         display: 'standalone',
-        icons: [{ src: '/img/logo-raasrang.jpeg', sizes: '512x512', type: 'image/jpeg' }],
+        icons: [{ src: '/img/logo-raasrang.png', sizes: '512x512', type: 'image/png' }],
       },
       workbox: { globPatterns: ['**/*.{js,css,html,jpeg,png,svg}'] },
     }),
